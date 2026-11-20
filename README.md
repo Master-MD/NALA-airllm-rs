@@ -3,9 +3,11 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-10b981.svg)](./LICENSE)
 [![Rust Edition 2024](https://img.shields.io/badge/Rust-Edition_2024_%7C_Zero_Unsafe-06b6d4.svg)](./Cargo.toml)
 [![Standalone Pure Rust](https://img.shields.io/badge/Standalone-Zero_Python_%7C_Zero_Node.js_%7C_0_Crates-f59e0b.svg)](./src/main.rs)
+[![GitHub Release](https://img.shields.io/github/v/release/Master-MD/NALA-airllm-rs?color=10b981&label=Release)](https://github.com/Master-MD/NALA-airllm-rs/releases/latest)
+[![Multi-OS CI](https://github.com/Master-MD/NALA-airllm-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/Master-MD/NALA-airllm-rs/actions/workflows/ci.yml)
 
 **Sprachen / Languages / Linguas:**  
-[**Deutsch (`DE`)**](./docs/README_DE.md) · [**English (`EN`)**](./docs/README_EN.md) · [**Français (`FR`)**](./docs/README_FR.md) · [**Italiano (`IT`)**](./docs/README_IT.md) · [**Rumantsch (`RM`)**](./docs/README_RM.md) · [**60s Caveman Guide**](./CAVEMAN_GUIDE.md) · [**FAQ**](./FAQ.md)
+[**Deutsch (`DE`)**](./docs/README_DE.md) · [**English (`EN`)**](./docs/README_EN.md) · [**Français (`FR`)**](./docs/README_FR.md) · [**Italiano (`IT`)**](./docs/README_IT.md) · [**Rumantsch (`RM`)**](./docs/README_RM.md) · [**5-Language License Summary**](./LICENSE_SUMMARY_5LANG.md) · [**60s Caveman Guide**](./CAVEMAN_GUIDE.md) · [**FAQ**](./FAQ.md) · [**Security**](./SECURITY.md) · [**Contributing**](./CONTRIBUTING.md)
 
 ---
 
