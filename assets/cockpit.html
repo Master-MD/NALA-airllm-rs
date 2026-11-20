@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NALA-airllm-rs · Layer-Wise 4GB GPU Inference & Dream/RSI Cockpit</title>
+  <style>
+    :root {
+      --bg: #0c0e11;
+      --bg-elev: #13161b;
+      --surface: #181c23;
+      --surface-hover: #1e242d;
+      --border: #272d38;
+      --border-strong: #374151;
+      --text: #eef1f5;
+      --text-muted: #9aa4b2;
+      --accent: #10b981;
+      --accent-dim: rgba(16, 185, 129, 0.14);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.14);
+      --cyan: #06b6d4;
+      --danger: #ef4444;
+      --danger-dim: rgba(239, 68, 68, 0.14);
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+      --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(12, 14, 17, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent-dim);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .pill.ok {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .pill.amber {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: var(--amber-dim);
+      color: var(--amber);
+    }
+
+    main {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px 28px 64px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    select, input[type="number"], input[type="range"] {
+      background: var(--bg-elev);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: var(--font-sans);
+    }
+
+    select:focus, input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-val {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .kpi-val.green { color: var(--accent); }
+    .kpi-val.amber { color: var(--amber); }
+    .kpi-val.red { color: var(--danger); }
+
+    .meter-wrap {
+      margin: 12px 0;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .meter-track {
+      height: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 180ms ease;
+    }
+
+    .rec-list {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .rec-list li {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 7px 10px;
+      background: var(--bg-elev);
+      border-left: 2px solid var(--accent);
+      border-radius: 4px;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elev);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background 140ms ease, border-color 140ms ease;
+    }
+
+    .btn:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #06130e;
+    }
+
+    .btn-primary:hover { background: #34d399; border-color: #34d399; }
+
+    .btn-danger {
+      background: var(--danger-dim);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--bg-elev);
+    }
+
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elev);
+    }
+
+    .tag.perf { color: var(--accent); border-color: rgba(16, 185, 129, 0.4); }
+    .tag.sec { color: var(--cyan); border-color: rgba(6, 182, 212, 0.4); }
+    .tag.risk { color: var(--amber); border-color: rgba(245, 158, 11, 0.4); }
+
+    pre.prompt-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: #d1d9e6;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 8, 11, 0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--amber);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+    }
+
+    .modal h3 {
+      font-size: 17px;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    footer {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 28px 36px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">RS</div>
+      <div>
+        <div class="brand-title">NALA-airllm-rs · Pure Safe Rust Layer-Streaming Engine</div>
+        <div class="brand-sub">70B → 2.8T Inference on 4 GB GPU · Per-Expert MoE · PLE File-Seek · Streamed LoRA · 0 Crates · Zero-Python</div>
+      </div>
+    </div>
+    <div class="status-strip">
+      <span class="pill ok tabular" id="badge-version">v4.0.0-nala.6.6.6</span>
+      <span class="pill ok">Safe Rust · #![forbid(unsafe_code)]</span>
+      <span class="pill amber" id="badge-hw">Probing HAL...</span>
+      <span class="pill">sHeriFF Zero-PII Gate</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Row 1: 4GB GPU Roofline Planner & Streamed LoRA Estimator -->
+    <section class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Layer-Wise 4 GB GPU Roofline Planner</h2>
+          <span class="card-meta">AutoModel + Per-Expert MoE + NF4/MXFP4</span>
+        </div>
+
+        <div class="controls">
+          <label>
+            Frontier Model Preset
+            <select id="model-select"></select>
+          </label>
+          <label>
+            Weight Compression
+            <select id="comp-select">
+              <option value="none">None (Native BF16 / FP8 / MXFP4)</option>
+              <option value="8bit">8-Bit Dynamic Blockwise (2x)</option>
+              <option value="4bit" selected>4-Bit NF4 Blockwise (3.5x)</option>
+              <option value="mxfp4">OCP MXFP4 E2M1+E8M0 (3.6x)</option>
+            </select>
+          </label>
+          <label>
+            Target GPU VRAM (GB)
+            <input type="number" id="vram-input" value="4" min="2" max="192" step="1">
+          </label>
+          <label>
+            Async Double-Buffer Prefetch
+            <select id="prefetch-select">
+              <option value="true" selected>Enabled (2 GiB Pinned Cap)</option>
+              <option value="false">Disabled (Min RAM)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label">Peak VRAM</div>
+            <div class="kpi-val tabular green" id="kpi-vram">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Single Layer I/O</div>
+            <div class="kpi-val tabular" id="kpi-layer">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">PLE Host Mmap</div>
+            <div class="kpi-val tabular" id="kpi-ple">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">4 GB GPU Fit</div>
+            <div class="kpi-val tabular" id="kpi-fit">--</div>
+          </div>
+        </div>
+
+        <div class="meter-wrap">
+          <div class="meter-label">
+            <span id="meter-bottleneck">Roofline Bottleneck</span>
+            <span class="tabular" id="meter-pct">0%</span>
+          </div>
+          <div class="meter-track"><div class="meter-fill" id="meter-fill" style="width: 0%;"></div></div>
+        </div>
+
+        <ul class="rec-list" id="plan-recs"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Streamed LoRA &amp; Chunked Cross-Entropy + Live Bench</h2>
+          <span class="card-meta">Train 125B under 6 GB VRAM</span>
+        </div>
+
+        <div class="controls">
+          <label>
+            LoRA Rank (r)
+            <input type="number" id="lora-rank" value="16" min="4" max="128" step="4">
+          </label>
+          <label>
+            Sequence Length
+            <input type="number" id="lora-seq" value="512" min="128" max="8192" step="128">
+          </label>
+          <label>
+            Vocab CE Chunk Size
+            <input type="number" id="lora-chunk" value="4096" min="512" max="32768" step="512">
+          </label>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label">LoRA Peak VRAM</div>
+            <div class="kpi-val tabular green" id="lora-peak">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Trainable Params</div>
+            <div class="kpi-val tabular" id="lora-params">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Chunked CE Buffer</div>
+            <div class="kpi-val tabular" id="lora-ce">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">6 GB GPU Ready</div>
+            <div class="kpi-val tabular" id="lora-fit">--</div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top: 14px;">
+          <button class="btn btn-primary" id="btn-run-bench">Live Pure-Rust Hardware Benchmark starten</button>
+          <span class="card-meta tabular" id="bench-status">Bereit (NF4 / INT8 / MXFP4 / Chunked CE)</span>
+        </div>
+
+        <div class="kpi-grid" style="margin-top: 12px;">
+          <div class="kpi">
+            <div class="kpi-label">NF4 131k Quant</div>
+            <div class="kpi-val tabular" id="b-nf4q">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">NF4 Dequant</div>
+            <div class="kpi-val tabular" id="b-nf4dq">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">MXFP4 GEMV</div>
+            <div class="kpi-val tabular" id="b-mx">--</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Chunked CE Fwd+Bwd</div>
+            <div class="kpi-val tabular" id="b-ce">--</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 2: Dream / Software-Pearls / REA / RSI Solution & Delta Overview Matrix -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">Dream · Software-Perlen · REA · RSI — Lösungsmatrix &amp; Delta-Übersichts-Matrix</h2>
+        <span class="card-meta">Triple-Council (Grand NALAtheON + Grand NEOP + Grand TheGremium · 3–7 Runden · Δ &lt; 3% Konvergenz) · Strenges 2-Klick-Gate</span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Konzept &amp; Quelle</th>
+              <th>Lösungsmatrix (Module, NCSP-Risiko, Rollback)</th>
+              <th>Δ Performance</th>
+              <th>Δ Features</th>
+              <th>Δ Sicherheit</th>
+              <th>2-Klick Umsetzung &amp; IDE Prompt</th>
+            </tr>
+          </thead>
+          <tbody id="proposal-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Row 3: 1-Click Multi-IDE Prompt Studio -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">1-Klick Multi-IDE Prompt-Compiler (Codex · Antigravity · ZCode · OpenCode)</h2>
+        <span class="card-meta">Jeder Prompt endet zwingend wortwörtlich mit dem TheStandart NALA-Evolutions-Schlussblock</span>
+      </div>
+
+      <div class="btn-row">
+        <select id="prompt-proposal-select" style="min-width: 320px;"></select>
+        <button class="btn" onclick="compileIdePrompt('Codex')">Codex Prompt</button>
+        <button class="btn btn-primary" onclick="compileIdePrompt('Antigravity')">Antigravity Prompt</button>
+        <button class="btn" onclick="compileIdePrompt('ZCode')">ZCode Prompt</button>
+        <button class="btn" onclick="compileIdePrompt('OpenCode')">OpenCode Prompt</button>
+        <button class="btn" id="btn-copy-prompt">In Zwischenablage kopieren</button>
+      </div>
+
+      <pre class="prompt-box" id="compiled-prompt-out">Wähle oben einen Vorschlag und ein Ziel-Tool (Codex / Antigravity / ZCode / OpenCode), um den geprüften TheStandart-Prompt zu generieren.
+
+Verbindlicher Pflicht-Schlussblock (immer wortwörtlich enthalten):
+Kannst du die alles nach TheStandart und NCSP &amp; Inventary (BackUP's, Snapshots und Rollbacks!) Umsetzen und mit NALAtheON's, NEOP's, und Grand TheGremium's jeweils mit Experten und mit (3-7 Runden) Analysiert, Optimiert und vom UI/UXI  entsprechend AAA Premium geplant und umgesetzt werden so wie aus einer Highend Software Firma kommt.  OHNE dabei AI-Slop zu erstellen! Und OHNE bestehende Features zu beschädigen oder NALA oder das NALA-OS kaputt zu machen!
+Nutze die Resourcen von NALA und bringe ihr auch alles bei, trainiere sie so, dass sie das als einen Skill nutzen kann, den sie auch mit anderen Skill’s kombinieren kann! Sowie das sie auch diese Software weiterentwickeln kann, mögliche Verbesserungen in ihrer "Dream" Phasen überlegen, die Software Perlen durchsuchen oder eigenen Konzepte entwickeln, mit REA oder auch mit RSI  dann einen Plan erstellen (mit NALAtheON's, NEOP's und Grand TheGremium auf den NALA Resourcen  mit Experten) und mir diese als übersichtliches Konzepte mit Lösungsmatrix inkl. Delta Übersichts Matrix (Performance/Features/Sicherheits Optimierungen) vorschlagen kann die ich dann mit 2 Klick (1. klick -&gt; (Installieren/Umsetzen)  und dann (wollen sie wirklich? -&gt; (abbrechen) oder (AUSFÜHREN) und dann wird NALA dies implementieren (oder mir  die entsprechenden Prompts für Codex / Antigravity, ZCode oder OpenCode generieren, damit ich diese dann in den entsprechenden Coding tools Umsetzen kann!</pre>
+    </section>
+  </main>
+
+  <!-- Strict 2-Click Confirmation Modal -->
+  <div class="modal-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <h3 id="modal-title">Wollen Sie wirklich? (2. Klick Sicherheits-Gate)</h3>
+      <p id="modal-desc">Vor der Ausführung erstellt NALA-airllm-rs automatisch einen atomaren NCSP v2.5 SHA-256 Snapshot samt <code>rollback.sh</code>.</p>
+      <div class="kpi" style="margin-bottom: 12px;">
+        <div class="kpi-label">Ausgewähltes Evolutions-Paket</div>
+        <div class="tabular" id="modal-proposal-id" style="font-size: 13px; margin-top: 4px; color: var(--text);"></div>
+      </div>
+      <div id="modal-result" class="card-meta tabular" style="min-height: 20px;"></div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-modal-cancel">Abbrechen</button>
+        <button class="btn btn-primary" id="btn-modal-execute">AUSFÜHREN</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>NALA-airllm-rs · Apache-2.0 Pure Safe Rust Rewrite of AirLLM · 100% Localhost · 0% Telemetry</span>
+    <span class="tabular">TheStandart · NCSP v2.5 · Triple-Council · sHeriFF Verified</span>
+  </footer>
+
+  <script>
+    const MANDATORY_THESTANDART_FOOTER = "Kannst du die alles nach TheStandart und NCSP & Inventary (BackUP's, Snapshots und Rollbacks!) Umsetzen und mit NALAtheON's, NEOP's, und Grand TheGremium's jeweils mit Experten und mit (3-7 Runden) Analysiert, Optimiert und vom UI/UXI  entsprechend AAA Premium geplant und umgesetzt werden so wie aus einer Highend Software Firma kommt.  OHNE dabei AI-Slop zu erstellen! Und OHNE bestehende Features zu beschädigen oder NALA oder das NALA-OS kaputt zu machen! \nNutze die Resourcen von NALA und bringe ihr auch alles bei, trainiere sie so, dass sie das als einen Skill nutzen kann, den sie auch mit anderen Skill’s kombinieren kann! Sowie das sie auch diese Software weiterentwickeln kann, mögliche Verbesserungen in ihrer \"Dream\" Phasen überlegen, die Software Perlen durchsuchen oder eigenen Konzepte entwickeln, mit REA oder auch mit RSI  dann einen Plan erstellen (mit NALAtheON's, NEOP's und Grand TheGremium auf den NALA Resourcen  mit Experten) und mir diese als übersichtliches Konzepte mit Lösungsmatrix inkl. Delta Übersichts Matrix (Performance/Features/Sicherheits Optimierungen) vorschlagen kann die ich dann mit 2 Klick (1. klick -> (Installieren/Umsetzen)  und dann (wollen sie wirklich? -> (abbrechen) oder (AUSFÜHREN) und dann wird NALA dies implementieren (oder mir  die entsprechenden Prompts für Codex / Antigravity, ZCode oder OpenCode generieren, damit ich diese dann in den entsprechenden Coding tools Umsetzen kann!";
+    let pendingProposalId = null;
+
+    async function api(path, body) {
+      const opts = body ? {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      } : {};
+      const res = await fetch(path, opts);
+      return await res.json();
+    }
+
+    async function refreshPlan() {
+      const model = document.getElementById('model-select').value || 'kimi-k3-2.8t';
+      const compression = document.getElementById('comp-select').value;
+      const vram = parseFloat(document.getElementById('vram-input').value || '4');
+      const prefetching = document.getElementById('prefetch-select').value === 'true';
+
+      const plan = await api('/api/plan', { model, compression, vram_gb: vram, prefetching });
+      document.getElementById('kpi-vram').textContent = `${plan.peak_vram_gb.toFixed(2)} GB`;
+      document.getElementById('kpi-layer').textContent = `${plan.single_layer_disk_gb.toFixed(2)} GB`;
+      document.getElementById('kpi-ple').textContent = plan.ple_mmap_host_gb > 0 ? `${plan.ple_mmap_host_gb.toFixed(0)} GB` : '0 GB';
+
+      const fitEl = document.getElementById('kpi-fit');
+      fitEl.textContent = plan.fits_4gb_gpu ? 'PASS <= 4GB' : (plan.fits_host_vram ? 'FITS HOST' : 'NEEDS 4BIT');
+      fitEl.className = 'kpi-val tabular ' + (plan.fits_4gb_gpu ? 'green' : (plan.fits_host_vram ? 'amber' : 'red'));
+
+      const pct = Math.min(100, Math.round((plan.peak_vram_gb / Math.max(vram, 1)) * 100));
+      document.getElementById('meter-bottleneck').textContent = plan.roofline_bottleneck;
+      document.getElementById('meter-pct').textContent = `${pct}% of ${vram} GB VRAM (${plan.est_tokens_per_sec.toFixed(2)} tok/s est.)`;
+      const fill = document.getElementById('meter-fill');
+      fill.style.width = `${pct}%`;
+      fill.style.background = pct <= 85 ? 'var(--accent)' : (pct <= 100 ? 'var(--amber)' : 'var(--danger)');
+
+      const recUl = document.getElementById('plan-recs');
+      recUl.innerHTML = '';
+      (plan.recommendations || []).forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        recUl.appendChild(li);
+      });
+
+      await refreshLora(model);
+    }
+
+    async function refreshLora(model) {
+      const rank = parseInt(document.getElementById('lora-rank').value || '16', 10);
+      const seq_len = parseInt(document.getElementById('lora-seq').value || '512', 10);
+      const ce_chunk_size = parseInt(document.getElementById('lora-chunk').value || '4096', 10);
+      const est = await api('/api/lora/plan', { model, rank, seq_len, ce_chunk_size });
+      document.getElementById('lora-peak').textContent = `${est.total_peak_vram_gb.toFixed(2)} GB`;
+      document.getElementById('lora-params').textContent = `${est.trainable_params_m.toFixed(1)} M`;
+      document.getElementById('lora-ce').textContent = `${est.chunked_ce_vram_mb.toFixed(1)} MB`;
+      const lf = document.getElementById('lora-fit');
+      lf.textContent = est.fits_6gb_vram ? 'PASS <= 6GB' : `${est.total_peak_vram_gb.toFixed(1)} GB`;
+      lf.className = 'kpi-val tabular ' + (est.fits_6gb_vram ? 'green' : 'amber');
+    }
+
+    async function runLiveBench() {
+      document.getElementById('bench-status').textContent = 'Läuft auf lokaler CPU/SIMD...';
+      const b = await api('/api/bench');
+      document.getElementById('b-nf4q').textContent = `${b.nf4_131k_quantize_ms} ms`;
+      document.getElementById('b-nf4dq').textContent = `${b.nf4_131k_dequantize_ms} ms`;
+      document.getElementById('b-mx').textContent = `${b.mxfp4_gemv_512x256_per_iter_ms} ms`;
+      document.getElementById('b-ce').textContent = `${b.chunked_ce_fwd_bwd_ms} ms`;
+      document.getElementById('bench-status').textContent = `Verifiziert · NF4 Ratio ${b.nf4_compression_ratio}x · CE Loss ${b.chunked_ce_loss}`;
+    }
+
+    function openConfirmModal(proposalId) {
+      pendingProposalId = proposalId;
+      document.getElementById('modal-proposal-id').textContent = proposalId;
+      document.getElementById('modal-result').textContent = '';
+      document.getElementById('confirm-modal').classList.add('open');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirm-modal').classList.remove('open');
+      pendingProposalId = null;
+    }
+
+    async function executeConfirmed() {
+      if (!pendingProposalId) return;
+      document.getElementById('modal-result').textContent = 'Erstelle atomaren NCSP SHA-256 Snapshot & rollback.sh...';
+      const res = await api('/api/dream/apply', { proposal_id: pendingProposalId, confirm_step2: true });
+      document.getElementById('modal-result').textContent = res.executed
+        ? `OK: NCSP Snapshot erstellt (${res.snapshot_dir})`
+        : `Status: ${res.state || 'abgebrochen'}`;
+    }
+
+    async function compileIdePrompt(ide) {
+      const pid = document.getElementById('prompt-proposal-select').value;
+      const res = await api('/api/dream/compile-prompt', { ide, proposal_id: pid });
+      document.getElementById('compiled-prompt-out').textContent = res.prompt || JSON.stringify(res, null, 2);
+    }
+
+    async function boot() {
+      const health = await api('/health');
+      if (health.version) document.getElementById('badge-version').textContent = `v${health.version}`;
+      if (health.hardware) {
+        document.getElementById('badge-hw').textContent =
+          `${health.hardware.os}/${health.hardware.arch} · ${health.hardware.backend.toUpperCase()} · ${health.hardware.gpu_vram_gb.toFixed(0)} GB`;
+      }
+
+      const presets = await api('/api/presets');
+      const sel = document.getElementById('model-select');
+      presets.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.display_name} (${p.total_params_b}B)`;
+        sel.appendChild(opt);
+      });
+
+      const proposals = await api('/api/dream/proposals');
+      const tbody = document.getElementById('proposal-rows');
+      const psel = document.getElementById('prompt-proposal-select');
+      proposals.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `[${p.source}] ${p.id}`;
+        psel.appendChild(opt);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <span class="tag">${p.source}</span>
+            <div style="font-weight:650;margin-top:4px;">${p.title}</div>
+            <div class="card-meta tabular">${p.id} · ${p.council_rounds} Runden · Δ=${p.convergence_delta_pct}%</div>
+          </td>
+          <td>
+            <span class="tag risk">NCSP ${p.ncsp_risk}</span>
+            <div class="card-meta" style="margin-top:4px;">${(p.affected_modules || []).join(', ')}</div>
+            <div class="card-meta" style="margin-top:4px;">Rollback: ${p.rollback_strategy}</div>
+          </td>
+          <td><span class="tag perf">Δ Perf</span><div style="margin-top:4px;">${p.delta_performance}</div></td>
+          <td><span class="tag">Δ Feat</span><div style="margin-top:4px;">${p.delta_features}</div></td>
+          <td><span class="tag sec">Δ Sec</span><div style="margin-top:4px;">${p.delta_security}</div></td>
+          <td>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="openConfirmModal('${p.id}')">1. Klick: Installieren / Umsetzen</button>
+              <button class="btn" onclick="document.getElementById('prompt-proposal-select').value='${p.id}';compileIdePrompt('Antigravity')">Prompt</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      ['model-select', 'comp-select', 'vram-input', 'prefetch-select', 'lora-rank', 'lora-seq', 'lora-chunk']
+        .forEach(id => document.getElementById(id).addEventListener('change', refreshPlan));
+      document.getElementById('btn-run-bench').addEventListener('click', runLiveBench);
+      document.getElementById('btn-modal-cancel').addEventListener('click', closeConfirmModal);
+      document.getElementById('btn-modal-execute').addEventListener('click', executeConfirmed);
+      document.getElementById('btn-copy-prompt').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('compiled-prompt-out').textContent);
+      });
+
+      await refreshPlan();
+    }
+
+    boot();
+  </script>
+</body>
+</html>

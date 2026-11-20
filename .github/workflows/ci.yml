@@ -1,0 +1,32 @@
+name: NALA-airllm-rs Pure Safe Rust CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Verify Zero-Warnings Release Test Suite
+        env:
+          RUSTFLAGS: "-D warnings"
+        run: cargo test --release
+      - name: Build Release Binary
+        run: cargo build --release
+      - name: Run sHeriFF Zero-PII Audit & Live Benchmark
+        shell: bash
+        run: |
+          BIN="./target/release/nala-airllm-rs"
+          if [ -f "./target/release/nala-airllm-rs.exe" ]; then BIN="./target/release/nala-airllm-rs.exe"; fi
+          "$BIN" version
+          "$BIN" audit-pii .
+          "$BIN" bench

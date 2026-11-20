@@ -1,0 +1,10 @@
+NALA-airllm-rs
+Copyright 2026 Master-MD / NALA Engineering
+
+This product is a 100% Pure Safe Rust clean-room rewrite and derivative work of:
+  AirLLM (https://github.com/lyogavin/airllm)
+  Original Author: Gavin Li (lyogavin) and AirLLM Contributors
+  License: Apache License, Version 2.0 (see LICENSE)
+
+All original Apache-2.0 license terms are preserved in full.
+Zero external Rust crates are linked; only the Rust Standard Library (`std`) is used.

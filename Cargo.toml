@@ -1,0 +1,30 @@
+[package]
+name = "nala-airllm-rs"
+version = "4.0.0-nala.6.6.6"
+edition = "2024"
+license = "Apache-2.0"
+authors = ["Gavin Li (Upstream AirLLM)", "Master-MD / NALA Engineering (100% Native Pure Safe Rust Rewrite)"]
+description = "100% Native Pure Safe Rust (Edition 2024, #![forbid(unsafe_code)], 0 External Crates, Zero-Python) Layer-Wise & Per-Expert LLM Inference and Streamed LoRA Training Engine — Run 70B to 2.8T Models on a Single 4GB GPU with NF4/INT8/MXFP4 Compression, PLE N-Gram File-Backed Lookup, Chunked Cross-Entropy, Hardened OpenAI/MCP Server & AAA 2-Click Dream/REA/RSI Cockpit"
+repository = "https://github.com/Master-MD/NALA-airllm-rs"
+readme = "README.md"
+keywords = ["llm", "inference", "airllm", "rust", "lora"]
+categories = ["command-line-utilities", "science", "algorithms"]
+
+[lib]
+name = "nala_airllm_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nala-airllm-rs"
+path = "src/main.rs"
+
+[dependencies]
+# 100% Pure Rust Standard Library — Zero external crate supply-chain attack surface,
+# instant cross-compilation across macOS (ARM64/x86_64), Linux (x86_64/ARM64), and Windows (x86_64).
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
