@@ -1,0 +1,88 @@
+name: NALA-airllm-rs Multi-Arch Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-assets:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            asset: nala-airllm-rs-macos-arm64
+            ext: ""
+          - os: macos-13
+            target: x86_64-apple-darwin
+            asset: nala-airllm-rs-macos-x86_64
+            ext: ""
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            asset: nala-airllm-rs-linux-x86_64
+            ext: ""
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            asset: nala-airllm-rs-linux-aarch64
+            ext: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset: nala-airllm-rs-windows-x86_64
+            ext: ".exe"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Stage artifact
+        shell: bash
+        run: |
+          mkdir -p release-out
+          cp "target/${{ matrix.target }}/release/nala-airllm-rs${{ matrix.ext }}" "release-out/${{ matrix.asset }}${{ matrix.ext }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: release-out/*
+
+  publish-release:
+    needs: build-assets
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+          merge-multiple: true
+      - name: Package archives & SHA256SUMS
+        run: |
+          cd dist-release
+          cp ../install.sh ../install.ps1 .
+          for b in nala-airllm-rs-macos-arm64 nala-airllm-rs-macos-x86_64 nala-airllm-rs-linux-x86_64 nala-airllm-rs-linux-aarch64; do
+            if [ -f "$b" ]; then
+              chmod +x "$b"
+              tar -czf "${b}.tar.gz" "$b"
+            fi
+          done
+          if [ -f nala-airllm-rs-windows-x86_64.exe ]; then
+            zip -q nala-airllm-rs-windows-x86_64.zip nala-airllm-rs-windows-x86_64.exe
+          fi
+          sha256sum * > SHA256SUMS.txt
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release create "$TAG" dist-release/* \
+            --title "NALA-airllm-rs $TAG — 100% Pure Safe Rust (Zero-Python, 0 Crates, 4GB GPU)" \
+            --notes "Automated multi-architecture Pure Safe Rust release for macOS (ARM64/x86_64), Linux (x86_64/ARM64 static musl), and Windows (x86_64)." \
+            --clobber || gh release upload "$TAG" dist-release/* --clobber
